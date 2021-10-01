@@ -21,7 +21,7 @@ class Net(nn.Module):
         self.d2 = nn.Conv2d(128, 128, kernel_size=1)
         self.d3 = nn.Conv2d(128, 128, kernel_size=1)
 
-        self.last = nn.Linear(128, 64)
+        self.last = nn.Linear(128, 1)
 
     def forward(self, x):
         x = F.relu(self.a1(x))
