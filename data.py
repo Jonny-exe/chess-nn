@@ -17,6 +17,8 @@ class Data:
         idx = 0
         while 1:
             game = chess.pgn.read_game(pgn)
+            if game is None:
+                break
             board = game.board()
             moves = game.mainline_moves()
             result = self.result_map[game.headers["Result"]]
@@ -26,8 +28,6 @@ class Data:
                 board.push(move)
                 games.append([self.board_to_matrix(board), result])
             idx += 1
-            if idx > 10000:
-                break
         np.save("data.npy", np.array(games), allow_pickle=True)
             
 
