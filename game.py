@@ -10,10 +10,10 @@ class Game:
         for move in board.legal_moves():
             board_cpy = board
             board_cpy.push(move)
-            output = net(board
+            output = net(board)
             if output > result[0]:
                 result[0] = output
                 result[1] = move
-    return result
+        return result
                 
             
