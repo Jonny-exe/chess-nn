@@ -15,24 +15,19 @@ class TrainModel:
         self,
         net,
         data,
-        STARTING_EPOCHS=0,
-        EPOCHS=2,
-        # BATCH_SIZE=300,
-        BATCH_SIZE=64,
+        EPOCHS=10,
+        BATCH_SIZE=256,
         optimizer_state=None,
         loss=None,
         save=None,
-        GRAPH=False,
     ):
         self.EPOCHS = EPOCHS
-        self.STARTING_EPOCHS = STARTING_EPOCHS
         self.BATCH_SIZE = BATCH_SIZE
-        self.GRAPH = GRAPH
 
         self.net = net
         self.data = data
         self.dataloader = torch.utils.data.DataLoader(DataSet(data), shuffle=True, batch_size=self.BATCH_SIZE)
-        self.optimizer = optim.Adam(self.net.parameters(), lr=0.01)
+        self.optimizer = optim.Adam(self.net.parameters(), lr=0.1)
 
         self.loss_function = nn.MSELoss().to(DEVICE)
 
@@ -51,14 +46,13 @@ class TrainModel:
         losses = []
         idx = 0
         loss = 0
-        for epoch in tqdm(range(self.STARTING_EPOCHS, self.EPOCHS, 1)):
+        for epoch in tqdm(range(self.EPOCHS)):
             for batch_X, batch_Y in tqdm(self.dataloader):
                 self.net.zero_grad()
                 self.optimizer.zero_grad()
-                outputs = self.net(batch_X)  # Shape: (4, -1, 100)
+                outputs = self.net(batch_X)
 
                 loss = self.loss_function(outputs.reshape([-1]), batch_Y)
-
                 losses.append(float(loss))
 
                 loss.backward()
