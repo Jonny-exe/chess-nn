@@ -13,8 +13,27 @@ class Data:
     result_map["0-1"] = -1
     result_map["1/2-1/2"] = 0
 
+    PIECE_VALUE = dict([
+        (0, 0),
+        (1, 100), 
+        (3, 350), 
+        (2, 350), 
+        (4, 525), 
+        (5, 1000),
+        (6, 100),
+        ])
+    PIECES = dict([
+        (0, ""),
+        (1, "p"), 
+        (3, "b"), 
+        (2, "n"), 
+        (4, "r"), 
+        (5, "q"),
+        (6, "k"),
+        ])
+
     def __init__(self):
-        pgn = open("lichess.pgn")
+        pgn = open("data.pgn")
         games = []
         idx = 0
         while 1:
@@ -24,22 +43,37 @@ class Data:
             board = game.board()
             moves = game.mainline_moves()
             result = self.result_map[game.headers["Result"]]
-            if idx >= 100:
+            if idx > 10:
                 break
             if idx % 1000 == 0:
                 print(idx)
+            matrix_board = []
             for move in moves:
                 board.push(move)
-                games.append([self.board_to_matrix(board), result])
+                matrix_board = self.board_to_matrix(board)
+                games.append([matrix_board, result])
+            piece_eval =self.evaluate(matrix_board)
+            print(board, piece_eval, result)
+
             idx += 1
-        np.save("test.npy", np.array(games), allow_pickle=True)
-            
+        np.save("db.npy", np.array(games), allow_pickle=True)
+
+    def evaluate(self, board):
+        board = np.array(board).reshape(64, 13)
+        print(board.shape)
+        piece_eval = 0
+        for piece in board:
+            piece = np.argmax(piece)
+            color = -1 if piece < 6 else +1
+            piece_eval += color * self.PIECE_VALUE[abs(piece - 6)]
+        return piece_eval
 
     def board_to_matrix(self, board):
+        eye = np.eye(13)
         indices = '♚♛♜♝♞♟⭘♙♘♗♖♕♔'
         unicode = board.unicode()
         return [
-            [indices.index(c)-6 for c in row.split()]
+            [eye[indices.index(c)] for c in row.split()]
             for row in unicode.split('\n')
         ]
 
@@ -53,5 +87,4 @@ class DataSet:
     def __getitem__(self, index):
         return self.X[index], self.Y[index]
 
-      
 data = Data()
