@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import chess
 import chess.pgn
+import psutil
 from collections import defaultdict
 import numpy as np
 import torch
@@ -8,6 +9,8 @@ import value_tables
 
 
 DEVICE = "cuda:0"
+RAM = 8
+OUTPUT_FILE = "new"
 
 
 class Data:
@@ -41,17 +44,29 @@ class Data:
 
     def __init__(self):
         pgn = open("data.pgn")
-        games = []
+        X = []
+        Y = []
         idx = 0
+        idx_f = 0
         while 1:
+            # Memory usage is too high
+            if idx % 1000 == 0:
+                print(psutil.virtual_memory()[2])
+                if psutil.virtual_memory()[2] > 80:
+                    if idx == 0:
+                        print("Your memory usage is too high")
+                        break
+                    np.savez(f"{OUTPUT_FILE}.{idx_f}.npz", X, Y, allow_pickle=True)
+                    idx_f += 1
+                    X = []
+                    Y = []
+
             game = chess.pgn.read_game(pgn)
             if game is None:
                 break
             board = game.board()
             moves = game.mainline_moves()
             result = self.result_map[game.headers["Result"]]
-            if idx > 10:
-                break
             if idx % 1000 == 0:
                 print(idx)
             matrix_board = []
@@ -59,11 +74,13 @@ class Data:
             for move in moves:
                 board.push(move)
                 matrix_board = self.board_to_matrix(board)
-                games.append([matrix_board, result])
-                piece_eval = self.evaluate(matrix_board, move_idx)
+                X.append(matrix_board)
+                Y.append(self.evaluate(matrix_board, move_idx))
                 move_idx += 1
             idx += 1
-        np.save("db.npy", np.array(games), allow_pickle=True)
+
+        f = open(f"{OUTPUT_FILE}.batches", "w").write(str(idx_f + 1)).close()
+        np.savez(f"{OUTPUT_FILE}.{idx_f}.npz", X, Y, allow_pickle=True)
 
     def evaluate(self, board, move):
         # 1 = endgame, 0 = middlegame
@@ -97,7 +114,6 @@ class Data:
             [eye[indices.index(c)] for c in row.split()] for row in unicode.split("\n")
         ]
 
-
 class DataSet:
     def __init__(self, data):
         self.data = data
@@ -109,6 +125,5 @@ class DataSet:
 
     def __getitem__(self, index):
         return self.X[index], self.Y[index]
-
 
 data = Data()
