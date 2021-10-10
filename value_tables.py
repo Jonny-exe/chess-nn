@@ -1,4 +1,5 @@
 # All these value tables come from: https://www.chessprogramming.org/PeSTO%27s_Evaluation_Function
+import numpy as np
 value = [
             [0, 82, 337, 365, 477, 1025, 20000],
             [0, 94, 281, 297, 512, 936, 20000]
@@ -151,3 +152,4 @@ piece_table = [
     queen_table,
     king_table
 ]
+

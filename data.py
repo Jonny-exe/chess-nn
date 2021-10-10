@@ -92,13 +92,13 @@ class Data:
         ]
 
 class DataSet:
-    def __init__(self, data):
-        self.data = data
-        self.X = torch.Tensor([x[0] for x in data]).to(DEVICE).reshape([-1, 1, 8, 8])
-        self.Y = torch.Tensor([y[1] for y in data]).to(DEVICE)
+    def __init__(self, X, Y):
+        self.X = torch.Tensor(X).to(DEVICE).reshape([-1, 1, 64, 13])
+        self.Y = torch.Tensor(Y).to(DEVICE)
 
     def __len__(self):
-        return len(self.X)
+        assert self.X.shape[0] == self.Y.shape[0]
+        return self.X.shape[0]
 
     def __getitem__(self, index):
         return self.X[index], self.Y[index]
